@@ -1,0 +1,3 @@
+# Valores secretos: configure no painel da hospedagem. Nunca publique os valores reais.
+SESSION_SECRET=
+SETUP_TOKEN=

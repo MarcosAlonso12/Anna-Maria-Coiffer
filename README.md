@@ -1,68 +1,75 @@
 # Anna Maria Coiffer
 
-Loja online de perfumes e cuidados, com catálogo público, pedidos, estoque, administração de vendas e gastos mensais.
+Loja de perfumes e cuidados com catálogo público, sacola, pedidos, estoque, usuários, gastos mensais e relatórios. Acesso por e-mail e senha da própria loja; clientes também podem pedir sem conta.
 
-**Site:** https://anna-maria-coiffer.marcosbrpsr.chatgpt.site
+**Estado da migração:** esta versão está preparada para hospedagem independente. A configuração da conta Cloudflare e a primeira publicação ainda precisam ser feitas pelo proprietário. Atualizar este repositório não altera a instalação anterior nem transfere seu banco de dados.
 
-## Primeiro uso
+## Colocar online
 
-1. O proprietário entra no site com a conta ChatGPT vinculada ao ambiente de hospedagem.
-2. Em Minha conta → Configurar atendimento, cadastra WhatsApp e condições de retirada.
-3. Em Produtos e estoque, cadastra os produtos reais, preços, custos, fotos e quantidades.
-4. Quando estiver tudo conferido, abre o recebimento de pedidos em Configurar atendimento.
-5. Para dar acesso a outro administrador, cadastra o e-mail utilizado por essa pessoa no ChatGPT, em Usuários.
+O caminho recomendado para Marcos é conectar **este repositório existente** no painel Cloudflare → Workers & Pages → criar aplicação → importar repositório GitHub. Use a branch `main`, raiz `/`, comando de build `npm run build` e comando de deploy `npm run deploy`.
 
-A loja começa vazia e com pedidos pausados. Não há usuários, senhas nem produtos de demonstração em produção. A imagem editorial do catálogo é ilustrativa e não representa um produto à venda.
+O [tutorial completo de instalação e publicação](docs/PUBLICAR.md) mostra banco, arquivos, segredos, primeiro administrador, atualizações e domínio próprio.
 
-## Clientes
+Para criar uma instalação separada (por exemplo, para um novo cliente), há também o botão abaixo. Ele **copia o repositório**, portanto a cópia passa a ser a origem das atualizações daquela instalação:
 
-O cliente pode enviar um pedido sem criar conta. O histórico anônimo é associado a um cookie seguro no mesmo navegador. Login opcional com ChatGPT permite histórico entre dispositivos. A loja não armazena senhas. O pagamento e a retirada são combinados com a loja; marcar o pedido como recebido depende de conferência manual.
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/MarcosAlonso12/Anna-Maria-Coiffer)
 
-Pedidos pendentes reservam estoque por até 48 horas e são liberados na próxima consulta/operação após a expiração. As regras de estoque são transacionais no banco, impedindo venda acima da disponibilidade. Um identificador por tentativa evita duplicação em reenvios.
+## O que está incluído
 
-## Administração
+- Catálogo público responsivo, fotos e sacola; pedidos sem cadastro obrigatório.
+- Contas próprias da loja e primeiro administrador protegido por chave de instalação.
+- Cadastro de produtos, custos e estoque com reserva transacional.
+- Pedidos e histórico restritos ao cliente correspondente; administração separada por permissão no servidor.
+- Recebimentos manuais, cancelamentos, gastos mensais e relatório exportável.
+- Anexo de XML fiscal emitido externamente e exportação gerencial de dados.
+- Páginas de ajuda e privacidade, sem scripts ou fontes de terceiros.
 
-- Produtos, fotos, custos, preços, quantidade disponível e arquivamento.
-- Pedidos, confirmação de recebimento, cancelamento e comprovante sem valor fiscal.
-- Contas de clientes e administradores, com bloqueio de acesso.
-- Gastos por mês: operação e compra de estoque separados.
-- Relatório mensal, margem estimada e exportação CSV.
-- XML de NF-e/NFC-e emitido externamente e evento de cancelamento anexáveis ao pedido.
-- Exportação dos dados em JSON. Os arquivos R2 não estão incluídos nessa exportação.
+## Desenvolvimento no computador
 
-A autenticação é fornecida pelo Sites/ChatGPT. `OWNER_EMAIL` identifica o proprietário no ambiente protegido. Administradores adicionais são autorizados pelo banco. Todas as permissões são verificadas no servidor; esconder botões não é usado como controle de acesso.
-
-## Limites atuais
-
-Não há cobrança automática por Pix/cartão, gateway, frete automático, emissão fiscal automática, envio de e-mail ou devolução parcial. XMLs têm verificações básicas de campos, mas não há validação de assinatura digital ou consulta à SEFAZ. O banco da antiga instalação local não sincroniza com esta versão e nenhum dado real daquela instalação foi importado.
-
-O site fica hospedado no Sites; o GitHub armazena o código. **Enviar um commit ao GitHub não publica automaticamente a loja.** Alterações precisam de uma nova publicação no Sites. GitHub Pages não executa o backend deste projeto.
-
-## Stack
-
-React 19, Vinext (compatibilidade com App Router do Next.js), TypeScript, Cloudflare Worker, D1 (SQLite) e R2. O frontend existente da versão local foi reaproveitado em `public/store.js` e `public/store.css`, montado pelo shell React. Valores monetários são inteiros em centavos. Os relatórios usam o mês do recebimento em America/Sao_Paulo.
-
-## Desenvolvimento
-
-Node >=22.13 e pnpm. Instale a versão compatível com `packageManager` no `package.json`.
+Instale Node.js 22.13 ou superior e Git. No terminal:
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm dev
-pnpm build
+git clone https://github.com/MarcosAlonso12/Anna-Maria-Coiffer.git
+cd Anna-Maria-Coiffer
+npm ci
 ```
 
-O perfil local de execução e os comandos de migração estão em [docs/DESENVOLVIMENTO-BASE.md](docs/DESENVOLVIMENTO-BASE.md). A configuração de execução é local e não deve ser publicada. Arquivo `.env.example` lista as variáveis de runtime; os valores de produção são definidos como segredos na hospedagem. Nunca faça commit de `.env`, certificados, tokens, bancos ou exportações de clientes.
-
-As migrações `drizzle/*.sql` são aplicadas antes da publicação. O banco D1, os objetos R2 e os segredos não são armazenados neste repositório. Atualizações preservam esses recursos. Um backup completo deve incluir o banco e os arquivos do armazenamento, não apenas o código ou a exportação JSON.
-
-## Verificação
+Copie `.dev.vars.example` para `.dev.vars` e preencha os dois segredos com valores aleatórios diferentes de pelo menos 32 caracteres. Não envie esse arquivo ao GitHub.
 
 ```sh
-node --check public/store.js
-node node_modules/typescript/bin/tsc --noEmit
-python tests/stock_guards.py
-node tests/reports.cjs
+npm run db:local
+npm run dev
 ```
 
-A compilação de produção, as migrações, as regras transacionais de estoque e os cálculos/telas em ambiente de teste foram verificados. O login real usa a infraestrutura do Sites; para a primeira operação, siga o teste de pedido do manual em `/ajuda`.
+Abra o endereço local exibido no terminal. A primeira conta é criada em **Entrar → Configurar primeiro administrador**, usando a chave `SETUP_TOKEN`. Os dados locais são independentes da produção.
+
+```sh
+npm test
+```
+
+O teste inclui checagem de TypeScript, empacotamento sem publicação, relatórios e API com banco/arquivos locais descartáveis. Não acessa o banco de produção.
+
+## Estrutura
+
+- `public/`: páginas HTML, interface JavaScript e estilos.
+- `src/`: API TypeScript e autenticação; executadas no servidor Cloudflare Workers.
+- `drizzle/`: migrações SQL incrementais do banco D1.
+- `wrangler.jsonc`: configuração da hospedagem e vínculos de banco/arquivos.
+- `tests/`: testes de regras e integração.
+- `docs/PUBLICAR.md`: instalação, publicação e manutenção.
+
+Não existem dependências de IA, login de terceiros ou chamadas a modelos na aplicação. O banner usa tipografia e CSS; cadastre fotografias reais dos produtos. O histórico Git conserva as versões antigas para recuperação.
+
+## Limites da versão
+
+Pagamentos são confirmados manualmente. Não há cobrança automática, cálculo de frete, emissão automática de nota fiscal, confirmação de e-mail ou recuperação automática de senha por e-mail. Clientes devem procurar a loja para recuperação; administradores podem redefinir uma senha após confirmar a identidade por outro meio. A compra usa retirada a combinar.
+
+A senha usa PBKDF2-SHA-256, sal individual e segredo de servidor. Há limitação de tentativas, cookies HttpOnly/Secure, proteção de origem/CSRF e rotação de sessão. Não altere `SESSION_SECRET` sem planejar recuperação das senhas: ele participa dos hashes.
+
+O relatório é gerencial. A emissão fiscal é feita no emissor externo. A importação do XML confere campos básicos e não valida assinatura digital. Nenhuma informação de cartão deve ser inserida na loja.
+
+## Atualizações e uso em outros projetos
+
+Após configurar Workers Builds no repositório de produção, commits na branch configurada iniciam o build e a publicação. Teste mudanças em outra branch; use banco e bucket separados para homologação. Faça backup do D1 e R2 antes de migrações. Nunca publique segredos, banco de clientes ou XMLs fiscais no GitHub.
+
+Para outro cliente, crie uma instalação com repositório, banco, bucket, segredos, domínio e administradores próprios. Consulte [o guia de entrega](docs/ENTREGA-CLIENTES.md).
