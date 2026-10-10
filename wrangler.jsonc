@@ -15,7 +15,8 @@
     {
       "binding": "DB",
       "database_name": "anna-maria-db",
-      "migrations_dir": "drizzle"
+      "migrations_dir": "drizzle",
+      "database_id": "2a77c932-d3a9-49d7-b44e-e27baea6022d"
     }
   ],
   "r2_buckets": [
